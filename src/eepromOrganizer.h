@@ -2,6 +2,7 @@
 
 #include "EEPROM_24AA64.h"
 #include "mbed.h"
+#include <array>
 
 namespace Pulu {
 
@@ -25,6 +26,10 @@ namespace Pulu {
             bool write_config(Config config);
 
             bool write_config_wait_time(uint16_t wait_time);
+
+
+            bool read_battery_levels(std::array<uint8_t, 32> &levels);
+            bool write_battery_level(uint8_t level);
 
         private:
             EEPROM_24AA64* eeprom;

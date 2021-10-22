@@ -50,4 +50,27 @@ namespace Pulu {
         return write_config(config);
     }
 
+    bool EEPROM_Organizer::read_battery_levels(std::array<uint8_t, 32> &levels) {
+        char data[32];
+        if(eeprom->read(data, 32, 0x1FFF-64)) {
+            return true;
+        }
+        memcpy(levels.data(), data, 32);
+        return false;
+    }
+
+    bool EEPROM_Organizer::write_battery_level(uint8_t level) {
+        std::array<uint8_t, 32> oldLevels;
+        if(read_battery_levels(oldLevels))
+        {
+            return true;
+        }
+        char newLevels[32] = {level};
+        memcpy(newLevels+1, oldLevels.data(), 31);
+        if(eeprom->write(newLevels, 32, 0x1FFF-64)) {
+            return true;
+        }
+        return false;
+    }
+
 };
