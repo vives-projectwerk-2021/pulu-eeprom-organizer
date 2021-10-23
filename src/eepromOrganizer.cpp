@@ -1,15 +1,20 @@
 #include "eepromOrganizer.h"
 
 namespace Pulu {
-    EEPROM_Organizer::EEPROM_Organizer(EEPROM_24AA64* eeprom) {
-        this->eeprom = eeprom;
+    EEPROM_Organizer::EEPROM_Organizer(PinName sda, PinName scl, uint16_t address) :
+        eeprom(sda, scl, address)
+    {
+        
     }
 
-    bool EEPROM_Organizer::read_config(Config &returnConfig) {
+    EEPROM_Organizer::Config EEPROM_Organizer::read_config(bool* valid, bool* error) {
+        eepromOrganizer_DEBUG("Reading config");
         Config config;
         char data[39];
-        if(eeprom->read(data, 39, 0)) {
-            return true;
+        if(eeprom.read(data, 39, 0)) {
+            *error = true;
+            eepromOrganizer_DEBUG("Error occurred while reading config");
+            return config;
         }
         uint32_t eepromCRC;
         memcpy(&eepromCRC, data, 4);
@@ -22,13 +27,17 @@ namespace Pulu {
         uint32_t computedCRC;
         mbedCRC.compute((void *)(data+4), 35, &computedCRC);
         if(eepromCRC != computedCRC) {
-            return true;
+            *error = true;
+            *valid = false;
+            eepromOrganizer_DEBUG("Invalid config");
+            return config;
         }
-        returnConfig = config;
-        return false;
+        *valid = true;
+        return config;
     }
 
     bool EEPROM_Organizer::write_config(Config config) {
+        eepromOrganizer_DEBUG("Writing config (full)");
         char data[39];
         char version[] = {2};
         memcpy((data+4), version, 1);
@@ -40,36 +49,54 @@ namespace Pulu {
         mbedCRC.compute((void *)(data+4), 35, &computedCRC);
         memcpy(data, &computedCRC, 4);
         
-        return eeprom->write(data, 39, 0);
+        bool error = eeprom.write(data, 39, 0);
+        if(error) {
+            eepromOrganizer_DEBUG("Error while writing config");
+            return true;
+        }
+        eepromOrganizer_DEBUG("Succesfull wrote config");
+        return false;
     }
 
     bool EEPROM_Organizer::write_config_wait_time(uint16_t wait_time) {
-        Config config;
-        read_config(config);
+        eepromOrganizer_DEBUG("Writing config (wait_time)");
+        bool error;
+        Config config = read_config(&error);
+        if(error) {
+            return true;
+        }
         memcpy(&config.wait_time, &wait_time, 2);
         return write_config(config);
     }
 
-    bool EEPROM_Organizer::read_battery_levels(std::array<uint8_t, 32> &levels) {
-        char data[32];
-        if(eeprom->read(data, 32, 0x1FFF-64)) {
-            return true;
+    std::array<uint8_t, 32> EEPROM_Organizer::read_battery_levels(bool* error) {
+        eepromOrganizer_DEBUG("Reading battery levels");
+        std::array<uint8_t, 32> levels;
+        levels.fill(0);
+        if(eeprom.read((char*)levels.data(), 32, 0x1FFF-64)) {
+            *error = true;
+            eepromOrganizer_DEBUG("Error while reading battery levels");
+            return levels;
         }
-        memcpy(levels.data(), data, 32);
-        return false;
+        eepromOrganizer_DEBUG("Succesfull read battery levels");
+        return levels;
     }
 
     bool EEPROM_Organizer::write_battery_level(uint8_t level) {
-        std::array<uint8_t, 32> oldLevels;
-        if(read_battery_levels(oldLevels))
+        eepromOrganizer_DEBUG("Writing battery level");
+        bool error;
+        std::array<uint8_t, 32> oldLevels = read_battery_levels(&error);
+        if(error)
         {
             return true;
         }
         char newLevels[32] = {level};
         memcpy(newLevels+1, oldLevels.data(), 31);
-        if(eeprom->write(newLevels, 32, 0x1FFF-64)) {
+        if(eeprom.write(newLevels, 32, 0x1FFF-64)) {
+            eepromOrganizer_DEBUG("Error while writing battery levels");
             return true;
         }
+        eepromOrganizer_DEBUG("Succesfull wrote battery levels");
         return false;
     }
 
