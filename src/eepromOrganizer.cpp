@@ -16,6 +16,7 @@ namespace Pulu {
             eepromOrganizer_DEBUG("Error occurred while reading config");
             return config;
         }
+        eepromOrganizer_DEBUG("Succesfull read config; validating...");
         uint32_t eepromCRC;
         memcpy(&eepromCRC, data, 4);
         memcpy(&config.version, data+4, 1);
@@ -33,6 +34,7 @@ namespace Pulu {
             return config;
         }
         *valid = true;
+        eepromOrganizer_DEBUG("Valid config");
         return config;
     }
 
