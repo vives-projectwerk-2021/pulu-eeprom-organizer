@@ -7,9 +7,9 @@ namespace Pulu {
         
     }
 
-    EEPROM_Organizer::Config EEPROM_Organizer::read_config(bool* valid, bool* error) {
+    EEPROM_Config EEPROM_Organizer::read_config(bool* valid, bool* error) {
         eepromOrganizer_DEBUG("Reading config");
-        Config config;
+        EEPROM_Config config;
         char data[39];
         if(eeprom.read(data, 39, 0)) {
             *error = true;
@@ -36,7 +36,7 @@ namespace Pulu {
         return config;
     }
 
-    bool EEPROM_Organizer::write_config(Config config) {
+    bool EEPROM_Organizer::write_config(EEPROM_Config config) {
         eepromOrganizer_DEBUG("Writing config (full)");
         char data[39];
         char version[] = {2};
@@ -60,8 +60,9 @@ namespace Pulu {
 
     bool EEPROM_Organizer::write_config_wait_time(uint16_t wait_time) {
         eepromOrganizer_DEBUG("Writing config (wait_time)");
+        bool valid;
         bool error;
-        Config config = read_config(&error);
+        EEPROM_Config config = read_config(&valid, &error);
         if(error) {
             return true;
         }
