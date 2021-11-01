@@ -72,11 +72,11 @@ namespace Pulu {
         return write_config(config);
     }
 
-    std::array<uint8_t, 32> EEPROM_Organizer::read_battery_levels(bool* error) {
+    std::array<uint8_t, EEPROM_24AA64::PAGE_SIZE> EEPROM_Organizer::read_battery_levels(bool* error) {
         eepromOrganizer_DEBUG("Reading battery levels");
-        std::array<uint8_t, 32> levels;
+        std::array<uint8_t, EEPROM_24AA64::PAGE_SIZE> levels;
         levels.fill(0);
-        if(eeprom.read((char*)levels.data(), 32, 0x1FFF-64)) {
+        if(eeprom.read((char*)levels.data(), EEPROM_24AA64::PAGE_SIZE, EEPROM_24AA64::MAX_ADDRESS-64)) {
             *error = true;
             eepromOrganizer_DEBUG("Error while reading battery levels");
             return levels;
@@ -88,14 +88,15 @@ namespace Pulu {
     bool EEPROM_Organizer::write_battery_level(uint8_t level) {
         eepromOrganizer_DEBUG("Writing battery level");
         bool error;
-        std::array<uint8_t, 32> oldLevels = read_battery_levels(&error);
+        auto oldLevels = read_battery_levels(&error);
         if(error)
         {
             return true;
         }
-        char newLevels[32] = {level};
-        memcpy(newLevels+1, oldLevels.data(), 31);
-        if(eeprom.write(newLevels, 32, 0x1FFF-64)) {
+        std::array<uint8_t, oldLevels.size()> newLevels;
+        newLevels[0] = level;
+        memcpy((char*)(newLevels.data()+1), oldLevels.data(), 31);
+        if(eeprom.write((char*)newLevels.data(), newLevels.size(), EEPROM_24AA64::MAX_ADDRESS-64)) {
             eepromOrganizer_DEBUG("Error while writing battery levels");
             return true;
         }
@@ -103,4 +104,7 @@ namespace Pulu {
         return false;
     }
 
+    bool EEPROM_Organizer::clear() {
+        return eeprom.clear();
+    }
 };

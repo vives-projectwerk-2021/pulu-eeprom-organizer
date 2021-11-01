@@ -20,8 +20,10 @@ namespace Pulu {
             bool write_config(EEPROM_Config config);
             bool write_config_wait_time(uint16_t wait_time);
 
-            std::array<uint8_t, 32> read_battery_levels(bool* error);
+            std::array<uint8_t, EEPROM_24AA64::PAGE_SIZE> read_battery_levels(bool* error);
             bool write_battery_level(uint8_t level);
+
+            bool clear();
 
         private:
             EEPROM_24AA64 eeprom;
