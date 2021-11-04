@@ -12,11 +12,11 @@ namespace Pulu {
         EEPROM_Config config;
         char data[39];
         if(eeprom.read(data, 39, 0)) {
-            *error = true;
+            if(error != nullptr) *error = true;
             eepromOrganizer_DEBUG("Error occurred while reading config");
             return config;
         }
-        *error = false;
+        if(error != nullptr) *error = false;
         eepromOrganizer_DEBUG("Succesfull read config; validating...");
         uint32_t eepromCRC;
         memcpy(&eepromCRC, data, 4);
@@ -29,11 +29,11 @@ namespace Pulu {
         uint32_t computedCRC;
         mbedCRC.compute((void *)(data+4), 35, &computedCRC);
         if(eepromCRC != computedCRC) {
-            *valid = false;
+            if(valid != nullptr) *valid = false;
             eepromOrganizer_DEBUG("Invalid config");
             return config;
         }
-        *valid = true;
+        if(valid != nullptr) *valid = true;
         eepromOrganizer_DEBUG("Valid config");
         return config;
     }
