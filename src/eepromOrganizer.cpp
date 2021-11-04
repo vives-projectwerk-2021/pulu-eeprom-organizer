@@ -41,8 +41,7 @@ namespace Pulu {
     bool EEPROM_Organizer::write_config(EEPROM_Config config) {
         eepromOrganizer_DEBUG("Writing config (full)");
         char data[39];
-        char version[] = {2};
-        memcpy((data+4), version, 1);
+        memcpy((data+4), &config.version, 1);
         memcpy((data+5), config.keys.devEui, 8);
         memcpy((data+13), config.keys.appEui, 8);
         memcpy((data+21), config.keys.appKey, 16);
