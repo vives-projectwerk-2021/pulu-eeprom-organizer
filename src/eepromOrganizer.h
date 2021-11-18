@@ -14,7 +14,7 @@ namespace Pulu {
 
     class EEPROM_Organizer {
         public:
-            EEPROM_Organizer(PinName sda, PinName scl, uint16_t address);
+            EEPROM_Organizer(I2C* i2c, uint8_t address);
 
             EEPROM_Config read_config(bool* valid = nullptr, bool* error = nullptr);
             bool write_config(EEPROM_Config config);

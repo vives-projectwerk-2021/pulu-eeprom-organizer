@@ -1,8 +1,8 @@
 #include "eepromOrganizer.h"
 
 namespace Pulu {
-    EEPROM_Organizer::EEPROM_Organizer(PinName sda, PinName scl, uint16_t address) :
-        eeprom(sda, scl, address)
+    EEPROM_Organizer::EEPROM_Organizer(I2C* i2c, uint8_t address) :
+        eeprom(i2c, address)
     {
         
     }
