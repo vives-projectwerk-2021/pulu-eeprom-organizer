@@ -39,6 +39,7 @@ namespace Pulu {
     }
 
     bool EEPROM_Organizer::write_config(EEPROM_Config config) {
+        if(config.wait_time<10) { config.wait_time = 10; }
         eepromOrganizer_DEBUG("Writing config (full)");
         char data[39];
         memcpy((data+4), &config.version, 1);
