@@ -81,6 +81,7 @@ namespace Pulu {
             eepromOrganizer_DEBUG("Error while reading battery levels");
             return levels;
         }
+        *error = false;
         eepromOrganizer_DEBUG("Succesfull read battery levels");
         return levels;
     }
@@ -94,8 +95,11 @@ namespace Pulu {
             return true;
         }
         std::array<uint8_t, oldLevels.size()> newLevels;
-        newLevels[0] = level;
-        memcpy((char*)(newLevels.data()+1), oldLevels.data(), 31);
+        if(oldLevels[oldLevels.size()-1] == 0xFF) { oldLevels.fill(level); } // set default value to newest value
+        for(uint8_t i = 0; i<oldLevels.size()-1; i++) {
+            newLevels[i] = oldLevels[i+1];
+        }
+        newLevels[oldLevels.size()-1] = level;
         if(eeprom.write((char*)newLevels.data(), newLevels.size(), EEPROM_24AA64::MAX_ADDRESS-64)) {
             eepromOrganizer_DEBUG("Error while writing battery levels");
             return true;
